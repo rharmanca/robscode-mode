@@ -24,8 +24,6 @@ Direct tool calling doesn't scale:
 - Each tool definition consumes context tokens
 - Every intermediate result passes through the model
 
-Connecting many MCP servers quickly overloads the context window and increases latency and cost.
-
 ### The approach
 
 Code Mode flips this model:
