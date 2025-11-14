@@ -4,7 +4,7 @@
 ![npm downloads](https://img.shields.io/npm/dt/@utcp/code-mode)
 ![GitHub Stars](https://img.shields.io/github/stars/universal-tool-calling-protocol/typescript-utcp)
 
-> **The first plug-and-play library that enables Code Mode tool execution locally.**  
+> **The first plug-and-play Code Mode library that enables tool call via code execution locally.**  
 > Transform your AI agents from clunky tool callers into efficient code executors — in just 3 lines.
 
 ## Why This Changes Everything
