@@ -50,6 +50,52 @@ const mcp = new McpServer({
     version: "1.0.0",
 });
 
+/**
+ * Sanitizes an identifier to be a valid TypeScript identifier.
+ */
+function sanitizeIdentifier(name: string): string {
+    return name
+        .replace(/[^a-zA-Z0-9_]/g, '_')
+        .replace(/^[0-9]/, '_$&');
+}
+
+/**
+ * Converts a UTCP tool name to its TypeScript interface name.
+ */
+function utcpNameToTsInterfaceName(utcpName: string): string {
+    if (utcpName.includes('.')) {
+        const parts = utcpName.split('.');
+        const manualName = parts[0]!;
+        const toolParts = parts.slice(1);
+        const sanitizedManualName = sanitizeIdentifier(manualName);
+        const toolName = toolParts.map(part => sanitizeIdentifier(part)).join('_');
+        return `${sanitizedManualName}.${toolName}`;
+    } else {
+        return sanitizeIdentifier(utcpName);
+    }
+}
+
+/**
+ * Finds a tool by either UTCP name or TypeScript interface name.
+ */
+async function findToolByName(client: CodeModeUtcpClient, name: string): Promise<{ tool: any, utcpName: string } | null> {
+    // First, try direct lookup by UTCP name
+    const directTool = await client.config.tool_repository.getTool(name);
+    if (directTool) {
+        return { tool: directTool, utcpName: name };
+    }
+    
+    // If not found, search through all tools to find one whose TS interface name matches
+    const allTools = await client.config.tool_repository.getTools();
+    for (const tool of allTools) {
+        if (utcpNameToTsInterfaceName(tool.name) === name) {
+            return { tool, utcpName: tool.name };
+        }
+    }
+    
+    return null;
+}
+
 function setupMcpTools() {
     // Register MCP prompt for using the code mode server
     mcp.registerPrompt("utcp_codemode_usage", {
@@ -126,7 +172,7 @@ Remember: The power of this system comes from combining multiple tools in sophis
         try {
             const tools = await client.searchTools(input.task_description, input.limit);
             const toolsWithInterfaces = tools.map(t => ({
-                name: t.name,
+                name: utcpNameToTsInterfaceName(t.name),
                 description: t.description,
                 typescript_interface: client.toolToTypeScriptInterface(t)
             }));
@@ -144,7 +190,7 @@ Remember: The power of this system comes from combining multiple tools in sophis
         const client = await initializeUtcpClient();
         try {
             const tools = await client.config.tool_repository.getTools();
-            const toolNames = tools.map(t => t.name);
+            const toolNames = tools.map(t => utcpNameToTsInterfaceName(t.name));
             return { content: [{ type: "text", text: JSON.stringify({ tools: toolNames }) }] };
         } catch (e: any) {
             return { content: [{ type: "text", text: JSON.stringify({ success: false, error: e.message }) }] };
@@ -160,7 +206,11 @@ Remember: The power of this system comes from combining multiple tools in sophis
     }, async (input) => {
         const client = await initializeUtcpClient();
         try {
-            const variables = await client.getRequiredVariablesForRegisteredTool(input.tool_name);
+            const found = await findToolByName(client, input.tool_name);
+            if (!found) {
+                return { content: [{ type: "text", text: JSON.stringify({ success: false, tool_name: input.tool_name, error: `Tool '${input.tool_name}' not found` }) }] };
+            }
+            const variables = await client.getRequiredVariablesForRegisteredTool(found.utcpName);
             return { content: [{ type: "text", text: JSON.stringify({ success: true, tool_name: input.tool_name, required_variables: variables }) }] };
         } catch (e: any) {
             return { content: [{ type: "text", text: JSON.stringify({ success: false, tool_name: input.tool_name, error: e.message }) }] };
@@ -176,11 +226,11 @@ Remember: The power of this system comes from combining multiple tools in sophis
     }, async (input) => {
         const client = await initializeUtcpClient();
         try {
-            const tool = await client.config.tool_repository.getTool(input.tool_name);
-            if (!tool) {
+            const found = await findToolByName(client, input.tool_name);
+            if (!found) {
                 return { content: [{ type: "text", text: JSON.stringify({ success: false, error: `Tool '${input.tool_name}' not found` }) }] };
             }
-            const typescript_interface = client.toolToTypeScriptInterface(tool);
+            const typescript_interface = client.toolToTypeScriptInterface(found.tool);
             return { content: [{ type: "text", text: typescript_interface }] };
         } catch (e: any) {
             return { content: [{ type: "text", text: JSON.stringify({ success: false, error: e.message }) }] };
