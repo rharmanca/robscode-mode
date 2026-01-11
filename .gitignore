@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+bun.lock
+package-lock.json
+
+# Environment and secrets
+.env
+.env.*
+
+# OpenCode configuration (sensitive)
+opencode.json
+.taskmaster/config.json
+
+# Backups (git handles versioning)
+*.backup*
+*.bak
+*.old
+*.tmp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
