@@ -40,9 +40,16 @@ let utcpClient: CodeModeUtcpClient | null = null;
 
 async function main() {
     setupMcpTools();
+    
+    // Initialize UTCP client and wait for tool discovery BEFORE connecting MCP transport
+    // This ensures tools are available when OpenCode queries the server
+    console.error("[code-mode] Starting UTCP client initialization...");
     utcpClient = await initializeUtcpClient();
+    console.error("[code-mode] UTCP client ready, connecting MCP transport...");
+    
     const transport = new StdioServerTransport();
     await mcp.connect(transport);
+    console.error("[code-mode] MCP transport connected, server ready.");
 }
 
 const mcp = new McpServer({
@@ -266,6 +273,10 @@ Remember: The power of this system comes from combining multiple tools in sophis
 let toolDiscoveryComplete = false;
 let toolDiscoveryPromise: Promise<void> | null = null;
 
+// Cache file for tool discovery (speeds up subsequent starts)
+const TOOL_CACHE_FILE = path.join(__dirname, '.tool_cache.json');
+const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour cache TTL
+
 async function initializeUtcpClient(): Promise<CodeModeUtcpClient> {
     if (utcpClient) {
         // Wait for tool discovery if not complete
@@ -329,14 +340,53 @@ async function initializeUtcpClient(): Promise<CodeModeUtcpClient> {
 }
 
 /**
+ * Load cached tool count to estimate expected tools
+ */
+async function loadToolCache(): Promise<{ toolCount: number; timestamp: number } | null> {
+    try {
+        const cacheContent = await fs.readFile(TOOL_CACHE_FILE, 'utf-8');
+        const cache = JSON.parse(cacheContent);
+        if (Date.now() - cache.timestamp < CACHE_TTL_MS) {
+            return cache;
+        }
+    } catch (e) {
+        // Cache doesn't exist or is invalid
+    }
+    return null;
+}
+
+/**
+ * Save tool count to cache for faster subsequent starts
+ */
+async function saveToolCache(toolCount: number): Promise<void> {
+    try {
+        await fs.writeFile(TOOL_CACHE_FILE, JSON.stringify({
+            toolCount,
+            timestamp: Date.now()
+        }));
+    } catch (e) {
+        console.error(`[code-mode] Failed to save tool cache: ${e}`);
+    }
+}
+
+/**
  * Wait for MCP servers to connect and discover tools.
  * Polls the tool repository until tools are discovered or timeout is reached.
+ * Uses cached tool count to know when discovery is likely complete.
  */
 async function waitForToolDiscovery(client: CodeModeUtcpClient, timeoutMs: number = 30000, pollIntervalMs: number = 500): Promise<void> {
     const startTime = Date.now();
     let lastToolCount = 0;
     let stableCount = 0;
     const stableThreshold = 3; // Number of polls with same count to consider discovery complete
+    
+    // Load cache to get expected tool count
+    const cache = await loadToolCache();
+    const expectedTools = cache?.toolCount || 0;
+    
+    if (expectedTools > 0) {
+        console.error(`[code-mode] Expecting ~${expectedTools} tools based on cache...`);
+    }
     
     console.error(`[code-mode] Waiting for tool discovery (timeout: ${timeoutMs}ms)...`);
     
@@ -346,11 +396,20 @@ async function waitForToolDiscovery(client: CodeModeUtcpClient, timeoutMs: numbe
             const currentCount = tools.length;
             
             if (currentCount > 0) {
+                // If we have cache and reached expected count, we're done
+                if (expectedTools > 0 && currentCount >= expectedTools) {
+                    console.error(`[code-mode] Tool discovery complete: ${currentCount} tools found (reached expected count)`);
+                    toolDiscoveryComplete = true;
+                    await saveToolCache(currentCount);
+                    return;
+                }
+                
                 if (currentCount === lastToolCount) {
                     stableCount++;
                     if (stableCount >= stableThreshold) {
                         console.error(`[code-mode] Tool discovery complete: ${currentCount} tools found`);
                         toolDiscoveryComplete = true;
+                        await saveToolCache(currentCount);
                         return;
                     }
                 } else {
@@ -370,6 +429,9 @@ async function waitForToolDiscovery(client: CodeModeUtcpClient, timeoutMs: numbe
     const tools = await client.config.tool_repository.getTools();
     console.error(`[code-mode] Tool discovery timeout reached. Found ${tools.length} tools.`);
     toolDiscoveryComplete = true;
+    if (tools.length > 0) {
+        await saveToolCache(tools.length);
+    }
 }
 
 main().catch(err => {
