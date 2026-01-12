@@ -514,16 +514,40 @@ Configured for use with OpenCode CLI:
 }
 ```
 
-### Connected MCP Servers (194 tools)
+### Connected MCP Servers (272 tools - Jan 12, 2026 Migration)
 
 | Server | Tools | Status |
 |--------|-------|--------|
-| n8n-mcp | 42 | ✅ Working |
-| google-workspace | 100 | ✅ Working |
-| tavily | 4 | ✅ Working |
-| memory | 9 | ✅ Working |
-| desktop-commander | 25 | ✅ Working |
-| filesystem | 14 | ✅ Working |
+| **google-workspace** | 100 | ✅ Working |
+| **n8n-mcp** | 42 | ✅ Working |
+| **todoist** | 35 | ✅ Working |
+| **desktop-commander** | 25 | ✅ Working |
+| **chrome-devtools** | 26 | ✅ Working |
+| **filesystem** | 14 | ✅ Working |
+| **tavily** | 4 | ✅ Working |
+| **memory** | 9 | ✅ Working |
+| **ref** | 2 | ✅ Working |
+
+**Migration:** All MCPs (9 servers, 272 tools) now accessed exclusively through code-mode. Direct MCP access disabled in OpenCode config.
+
+### OpenCode Migration Details
+
+**Date:** January 12, 2026  
+**Status:** Complete
+
+**What Changed:**
+- Expanded `.utcp_config.json` to include todoist, ref, chrome-devtools
+- Disabled direct MCP access in `~/.config/opencode/opencode.json` (set all to `enabled: false`)
+- Updated skills: `skill/code-mode/SKILL.md`, `skill/auto-route/SKILL.md`
+- All interaction now through: `mcp_code-mode_list_tools`, `mcp_code-mode_search_tools`, `mcp_code-mode_call_tool_chain`
+
+**Benefits:**
+- Single MCP to manage (code-mode only)
+- Unified tool discovery across 272 tools
+- Better multi-MCP orchestration with TypeScript execution
+- Simplified architecture - cleaner separation of concerns
+
+**Rollback:** Restore `~/.config/opencode/opencode.json.backup` if needed.
 
 ### UTCP Config Format
 
