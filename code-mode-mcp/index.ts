@@ -262,8 +262,16 @@ Remember: The power of this system comes from combining multiple tools in sophis
 
 }
 
+// Track if initial tool discovery is complete
+let toolDiscoveryComplete = false;
+let toolDiscoveryPromise: Promise<void> | null = null;
+
 async function initializeUtcpClient(): Promise<CodeModeUtcpClient> {
     if (utcpClient) {
+        // Wait for tool discovery if not complete
+        if (!toolDiscoveryComplete && toolDiscoveryPromise) {
+            await toolDiscoveryPromise;
+        }
         return utcpClient;
     }
 
@@ -312,7 +320,56 @@ async function initializeUtcpClient(): Promise<CodeModeUtcpClient> {
     const newClient = await CodeModeUtcpClient.create(scriptDir, clientConfig);
 
     utcpClient = newClient;
+    
+    // Start tool discovery wait in background
+    toolDiscoveryPromise = waitForToolDiscovery(newClient);
+    await toolDiscoveryPromise;
+    
     return utcpClient;
+}
+
+/**
+ * Wait for MCP servers to connect and discover tools.
+ * Polls the tool repository until tools are discovered or timeout is reached.
+ */
+async function waitForToolDiscovery(client: CodeModeUtcpClient, timeoutMs: number = 30000, pollIntervalMs: number = 500): Promise<void> {
+    const startTime = Date.now();
+    let lastToolCount = 0;
+    let stableCount = 0;
+    const stableThreshold = 3; // Number of polls with same count to consider discovery complete
+    
+    console.error(`[code-mode] Waiting for tool discovery (timeout: ${timeoutMs}ms)...`);
+    
+    while (Date.now() - startTime < timeoutMs) {
+        try {
+            const tools = await client.config.tool_repository.getTools();
+            const currentCount = tools.length;
+            
+            if (currentCount > 0) {
+                if (currentCount === lastToolCount) {
+                    stableCount++;
+                    if (stableCount >= stableThreshold) {
+                        console.error(`[code-mode] Tool discovery complete: ${currentCount} tools found`);
+                        toolDiscoveryComplete = true;
+                        return;
+                    }
+                } else {
+                    stableCount = 0;
+                    console.error(`[code-mode] Discovered ${currentCount} tools so far...`);
+                }
+                lastToolCount = currentCount;
+            }
+        } catch (e) {
+            // Ignore errors during polling
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
+    }
+    
+    // Timeout reached
+    const tools = await client.config.tool_repository.getTools();
+    console.error(`[code-mode] Tool discovery timeout reached. Found ${tools.length} tools.`);
+    toolDiscoveryComplete = true;
 }
 
 main().catch(err => {

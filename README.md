@@ -465,3 +465,89 @@ The [comprehensive Python study](https://github.com/imran31415/codemode_python_b
 ## License
 
 **MPL-2.0** – Open source with commercial-friendly terms.
+
+---
+
+## Fork Modifications (rharmanca/robscode-mode)
+
+This fork includes the following enhancements for OpenCode integration:
+
+### Tool Discovery Wait Mechanism
+
+**Problem:** The original server returns empty tools if queried before MCP servers finish connecting (~20 seconds for multiple servers).
+
+**Solution:** Added `waitForToolDiscovery()` function in `code-mode-mcp/index.ts` that:
+- Polls the tool repository until tools are discovered
+- Uses stable count detection (3 consecutive polls with same count)
+- Configurable timeout (default: 30 seconds)
+- Logs discovery progress to stderr
+
+```typescript
+// New initialization flow
+const client = await CodeModeUtcpClient.create(scriptDir, clientConfig);
+await waitForToolDiscovery(client); // Waits until tools are discovered
+```
+
+### Local Setup Files
+
+| File | Purpose |
+|------|---------|
+| `.utcp_config.json` | MCP server definitions (gitignored - contains secrets) |
+| `LOCAL_SETUP.md` | Quick reference for local testing |
+
+### OpenCode Integration
+
+Configured for use with OpenCode CLI:
+
+```json
+// ~/.config/opencode/opencode.json
+{
+  "mcp": {
+    "code-mode": {
+      "type": "local",
+      "command": ["node", "/path/to/robscode-mode/code-mode-mcp/dist/index.js"],
+      "env": {
+        "UTCP_CONFIG_FILE": "/path/to/robscode-mode/.utcp_config.json"
+      }
+    }
+  }
+}
+```
+
+### Connected MCP Servers (194 tools)
+
+| Server | Tools | Status |
+|--------|-------|--------|
+| n8n-mcp | 42 | ✅ Working |
+| google-workspace | 100 | ✅ Working |
+| tavily | 4 | ✅ Working |
+| memory | 9 | ✅ Working |
+| desktop-commander | 25 | ✅ Working |
+| filesystem | 14 | ✅ Working |
+
+### UTCP Config Format
+
+```json
+{
+  "manual_call_templates": [{
+    "name": "mcp-servers",
+    "call_template_type": "mcp",
+    "config": {
+      "mcpServers": {
+        "server-name": {
+          "transport": "stdio",
+          "command": "npx",
+          "args": ["package-name"],
+          "env": { "API_KEY": "value" }
+        }
+      }
+    }
+  }]
+}
+```
+
+### Related Documentation
+
+- **Obsidian:** `30-RESOURCES/34-Reference/Tech-Setup/MCP-Servers/Code-Mode-Integration.md`
+- **CLAUDE.md:** `~/.claude/CLAUDE.md` (Code-Mode Usage section)
+- **Plugin:** `~/.config/opencode/plugin/code-mode-router.ts`
