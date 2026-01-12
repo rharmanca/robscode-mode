@@ -2,6 +2,36 @@
 
 All notable changes to the robscode-mode fork.
 
+## [2026-01-12] - Performance Optimization
+
+### Improved
+- **Faster Startup** - Tool discovery now completes in ~20ms when cache is valid (was 25-30 seconds)
+  - Reduced poll interval from 500ms to 250ms
+  - Reduced stable threshold from 3 to 2 polls
+  - Added early exit at 95% of expected tools for large tool sets
+
+- **Better Tool Search** - Enhanced `search_tools` with fuzzy matching
+  - Merges semantic search + keyword matching for better coverage
+  - Prioritizes exact matches in name, then description, then word matches
+  - Boosts shorter (more specific) tool names
+
+- **Error Handling** - Improved logging and status tracking
+  - Added `McpStatus` interface for connection tracking
+  - Reduced log noise (progress only every 2 seconds)
+  - Better error messages during discovery
+
+### Configuration
+New `DISCOVERY_CONFIG` object for easy tuning:
+```typescript
+{
+    pollIntervalMs: 250,        // Reduced from 500ms
+    stableThreshold: 2,         // Reduced from 3
+    timeoutMs: 30000,           // 30 second timeout
+    earlyExitThreshold: 0.95,   // Exit early at 95%
+    minToolsForEarlyExit: 100,  // Only for large tool sets
+}
+```
+
 ## [2026-01-12] - Migration Complete
 
 ### Added
