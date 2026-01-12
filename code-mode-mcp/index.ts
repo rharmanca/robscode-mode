@@ -176,6 +176,12 @@ Remember: The power of this system comes from combining multiple tools in sophis
         },
     }, async (input) => {
         const client = await initializeUtcpClient();
+        
+        // Wait for tool discovery to complete if not already done
+        if (!toolDiscoveryComplete && toolDiscoveryPromise) {
+            await toolDiscoveryPromise;
+        }
+        
         try {
             const tools = await client.searchTools(input.task_description, input.limit);
             const toolsWithInterfaces = tools.map(t => ({
@@ -195,6 +201,12 @@ Remember: The power of this system comes from combining multiple tools in sophis
         inputSchema: {},
     }, async () => {
         const client = await initializeUtcpClient();
+        
+        // Wait for tool discovery to complete if not already done
+        if (!toolDiscoveryComplete && toolDiscoveryPromise) {
+            await toolDiscoveryPromise;
+        }
+        
         try {
             const tools = await client.config.tool_repository.getTools();
             const toolNames = tools.map(t => utcpNameToTsInterfaceName(t.name));
@@ -255,6 +267,12 @@ Remember: The power of this system comes from combining multiple tools in sophis
         },
     }, async (input) => {
         const client = await initializeUtcpClient();
+        
+        // Wait for tool discovery to complete if not already done
+        if (!toolDiscoveryComplete && toolDiscoveryPromise) {
+            await toolDiscoveryPromise;
+        }
+        
         try {
             const { result, logs } = await client.callToolChain(input.code, input.timeout);
             const content = JSON.stringify({ success: true, result, logs })
