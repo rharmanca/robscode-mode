@@ -169,7 +169,7 @@ Remember: The power of this system comes from combining multiple tools in sophis
 
     mcp.registerTool("search_tools", {
         title: "Search for UTCP Tools",
-        description: "Searches for relevant tools based on a task description.",
+        description: "Searches for relevant tools based on a task description. Uses both semantic search and fuzzy keyword matching for better results.",
         inputSchema: {
             task_description: z.string().describe("A natural language description of the task."),
             limit: z.number().optional().default(10),
@@ -183,8 +183,32 @@ Remember: The power of this system comes from combining multiple tools in sophis
         }
         
         try {
-            const tools = await client.searchTools(input.task_description, input.limit);
-            const toolsWithInterfaces = tools.map(t => ({
+            // Get results from both semantic search and fuzzy matching
+            const semanticTools = await client.searchTools(input.task_description, input.limit * 2);
+            const allTools = await client.config.tool_repository.getTools();
+            const fuzzyTools = fuzzyMatchTools(allTools, input.task_description).slice(0, input.limit * 2);
+            
+            // Merge results, prioritizing semantic matches but including fuzzy matches
+            const seenNames = new Set<string>();
+            const mergedTools: any[] = [];
+            
+            // Add semantic results first
+            for (const tool of semanticTools) {
+                if (!seenNames.has(tool.name)) {
+                    seenNames.add(tool.name);
+                    mergedTools.push(tool);
+                }
+            }
+            
+            // Add fuzzy results that weren't in semantic
+            for (const tool of fuzzyTools) {
+                if (!seenNames.has(tool.name) && mergedTools.length < input.limit) {
+                    seenNames.add(tool.name);
+                    mergedTools.push(tool);
+                }
+            }
+            
+            const toolsWithInterfaces = mergedTools.slice(0, input.limit).map(t => ({
                 name: utcpNameToTsInterfaceName(t.name),
                 description: t.description,
                 typescript_interface: client.toolToTypeScriptInterface(t)
@@ -295,6 +319,25 @@ let toolDiscoveryPromise: Promise<void> | null = null;
 const TOOL_CACHE_FILE = path.join(__dirname, '.tool_cache.json');
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour cache TTL
 
+// Discovery configuration - optimized for faster startup
+const DISCOVERY_CONFIG = {
+    pollIntervalMs: 250,        // Reduced from 500ms for faster detection
+    stableThreshold: 2,         // Reduced from 3 - faster completion
+    timeoutMs: 30000,           // 30 second timeout
+    earlyExitThreshold: 0.95,   // Exit early if we have 95% of expected tools
+    minToolsForEarlyExit: 100,  // Only early exit if we expect many tools
+};
+
+// Track MCP connection status for error reporting
+interface McpStatus {
+    name: string;
+    connected: boolean;
+    toolCount: number;
+    error?: string;
+    lastAttempt: number;
+}
+const mcpConnectionStatus: Map<string, McpStatus> = new Map();
+
 async function initializeUtcpClient(): Promise<CodeModeUtcpClient> {
     if (utcpClient) {
         // Wait for tool discovery if not complete
@@ -389,14 +432,17 @@ async function saveToolCache(toolCount: number): Promise<void> {
 
 /**
  * Wait for MCP servers to connect and discover tools.
- * Polls the tool repository until tools are discovered or timeout is reached.
- * Uses cached tool count to know when discovery is likely complete.
+ * Optimized for faster startup with early exit conditions.
  */
-async function waitForToolDiscovery(client: CodeModeUtcpClient, timeoutMs: number = 30000, pollIntervalMs: number = 500): Promise<void> {
+async function waitForToolDiscovery(client: CodeModeUtcpClient, timeoutMs?: number, pollIntervalMs?: number): Promise<void> {
+    const config = DISCOVERY_CONFIG;
+    const timeout = timeoutMs ?? config.timeoutMs;
+    const pollInterval = pollIntervalMs ?? config.pollIntervalMs;
+    
     const startTime = Date.now();
     let lastToolCount = 0;
     let stableCount = 0;
-    const stableThreshold = 3; // Number of polls with same count to consider discovery complete
+    let lastLogTime = 0;
     
     // Load cache to get expected tool count
     const cache = await loadToolCache();
@@ -406,50 +452,118 @@ async function waitForToolDiscovery(client: CodeModeUtcpClient, timeoutMs: numbe
         console.error(`[code-mode] Expecting ~${expectedTools} tools based on cache...`);
     }
     
-    console.error(`[code-mode] Waiting for tool discovery (timeout: ${timeoutMs}ms)...`);
+    console.error(`[code-mode] Waiting for tool discovery (timeout: ${timeout}ms, poll: ${pollInterval}ms)...`);
     
-    while (Date.now() - startTime < timeoutMs) {
+    while (Date.now() - startTime < timeout) {
         try {
             const tools = await client.config.tool_repository.getTools();
             const currentCount = tools.length;
             
             if (currentCount > 0) {
-                // If we have cache and reached expected count, we're done
+                // Early exit: If we have cache and reached expected count
                 if (expectedTools > 0 && currentCount >= expectedTools) {
-                    console.error(`[code-mode] Tool discovery complete: ${currentCount} tools found (reached expected count)`);
+                    const elapsed = Date.now() - startTime;
+                    console.error(`[code-mode] Tool discovery complete: ${currentCount} tools in ${elapsed}ms (reached expected count)`);
                     toolDiscoveryComplete = true;
                     await saveToolCache(currentCount);
                     return;
                 }
                 
+                // Early exit: If we have 95%+ of expected tools (for large tool sets)
+                if (expectedTools >= config.minToolsForEarlyExit && 
+                    currentCount >= expectedTools * config.earlyExitThreshold) {
+                    const elapsed = Date.now() - startTime;
+                    console.error(`[code-mode] Tool discovery complete: ${currentCount} tools in ${elapsed}ms (early exit at ${Math.round(currentCount/expectedTools*100)}%)`);
+                    toolDiscoveryComplete = true;
+                    await saveToolCache(currentCount);
+                    return;
+                }
+                
+                // Stability check
                 if (currentCount === lastToolCount) {
                     stableCount++;
-                    if (stableCount >= stableThreshold) {
-                        console.error(`[code-mode] Tool discovery complete: ${currentCount} tools found`);
+                    if (stableCount >= config.stableThreshold) {
+                        const elapsed = Date.now() - startTime;
+                        console.error(`[code-mode] Tool discovery complete: ${currentCount} tools in ${elapsed}ms`);
                         toolDiscoveryComplete = true;
                         await saveToolCache(currentCount);
                         return;
                     }
                 } else {
                     stableCount = 0;
-                    console.error(`[code-mode] Discovered ${currentCount} tools so far...`);
+                    // Log progress every 2 seconds to reduce noise
+                    if (Date.now() - lastLogTime > 2000) {
+                        console.error(`[code-mode] Discovered ${currentCount} tools so far...`);
+                        lastLogTime = Date.now();
+                    }
                 }
                 lastToolCount = currentCount;
             }
         } catch (e) {
-            // Ignore errors during polling
+            // Log errors but continue polling
+            console.error(`[code-mode] Discovery poll error: ${e}`);
         }
         
-        await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
     }
     
     // Timeout reached
     const tools = await client.config.tool_repository.getTools();
-    console.error(`[code-mode] Tool discovery timeout reached. Found ${tools.length} tools.`);
+    const elapsed = Date.now() - startTime;
+    console.error(`[code-mode] Tool discovery timeout after ${elapsed}ms. Found ${tools.length} tools.`);
     toolDiscoveryComplete = true;
     if (tools.length > 0) {
         await saveToolCache(tools.length);
     }
+}
+
+/**
+ * Enhanced tool search with fuzzy matching and keyword support
+ */
+function fuzzyMatchTools(tools: any[], query: string): any[] {
+    const queryLower = query.toLowerCase();
+    const queryWords = queryLower.split(/\s+/).filter(w => w.length > 2);
+    
+    return tools
+        .map(tool => {
+            const nameLower = tool.name.toLowerCase();
+            const descLower = (tool.description || '').toLowerCase();
+            
+            let score = 0;
+            
+            // Exact match in name (highest priority)
+            if (nameLower.includes(queryLower)) {
+                score += 100;
+            }
+            
+            // Exact match in description
+            if (descLower.includes(queryLower)) {
+                score += 50;
+            }
+            
+            // Word matches
+            for (const word of queryWords) {
+                if (nameLower.includes(word)) score += 20;
+                if (descLower.includes(word)) score += 10;
+            }
+            
+            // Boost for shorter names (more specific tools)
+            if (score > 0 && nameLower.length < 30) {
+                score += 5;
+            }
+            
+            return { tool, score };
+        })
+        .filter(item => item.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .map(item => item.tool);
+}
+
+/**
+ * Get MCP connection status for debugging
+ */
+function getMcpStatus(): McpStatus[] {
+    return Array.from(mcpConnectionStatus.values());
 }
 
 main().catch(err => {
