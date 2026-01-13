@@ -309,6 +309,63 @@ Remember: The power of this system comes from combining multiple tools in sophis
         }
     });
 
+    // Get available workflow templates
+    mcp.registerTool("get_workflow_templates", {
+        title: "List Available Workflow Templates",
+        description: "Returns a list of pre-built workflow templates for common multi-MCP tasks.",
+        inputSchema: {},
+    }, async () => {
+        return {
+            content: [{
+                type: "text",
+                text: JSON.stringify(getWorkflowTemplates(), null, 2)
+            }]
+        };
+    });
+
+    // Execute a pre-built workflow template
+    mcp.registerTool("execute_workflow", {
+        title: "Execute Workflow Template",
+        description: "Execute a pre-built workflow template with the given parameters.",
+        inputSchema: {
+            template: z.string().describe("Name of the workflow template to execute"),
+            parameters: z.record(z.any()).optional().describe("Parameters to substitute in the workflow template")
+        },
+    }, async (input) => {
+        const client = await initializeUtcpClient();
+        
+        // Wait for tool discovery to complete if not already done
+        if (!toolDiscoveryComplete && toolDiscoveryPromise) {
+            await toolDiscoveryPromise;
+        }
+        
+        try {
+            const workflowCode = getWorkflowCode(input.template, input.parameters || {});
+            if (!workflowCode) {
+                return {
+                    content: [{
+                        type: "text",
+                        text: JSON.stringify({ success: false, error: `Workflow template '${input.template}' not found` }, null, 2)
+                    }]
+                };
+            }
+            const { result, logs } = await client.callToolChain(workflowCode, 30000);
+            return {
+                content: [{
+                    type: "text",
+                    text: JSON.stringify({ success: true, result, logs }, null, 2)
+                }]
+            };
+        } catch (e: any) {
+            return {
+                content: [{
+                    type: "text",
+                    text: JSON.stringify({ success: false, error: e.message }, null, 2)
+                }]
+            };
+        }
+    });
+
 }
 
 // Track if initial tool discovery is complete
@@ -564,6 +621,146 @@ function fuzzyMatchTools(tools: any[], query: string): any[] {
  */
 function getMcpStatus(): McpStatus[] {
     return Array.from(mcpConnectionStatus.values());
+}
+
+/**
+ * Auto-retry wrapper with exponential backoff
+ */
+async function withRetry<T>(
+    fn: () => Promise<T>,
+    options: { maxRetries?: number; initialDelayMs?: number; maxDelayMs?: number } = {}
+): Promise<T> {
+    const { maxRetries = 3, initialDelayMs = 1000, maxDelayMs = 10000 } = options;
+    let lastError: Error | null = null;
+    
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            return await fn();
+        } catch (e: any) {
+            lastError = e;
+            if (attempt < maxRetries) {
+                const delay = Math.min(initialDelayMs * Math.pow(2, attempt), maxDelayMs);
+                console.error(`[code-mode] Retry ${attempt + 1}/${maxRetries} after ${delay}ms: ${e.message}`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+    }
+    throw lastError;
+}
+
+/**
+ * Pre-built workflow templates for common multi-MCP tasks
+ */
+const WORKFLOW_TEMPLATES = {
+    // Email to Task: Search emails and create tasks from them
+    email_to_task: `
+// Search for important emails and create tasks
+const emails = await mcp_servers.google_workspace_search_gmail_messages({
+    query: "is:unread is:important",
+    user_google_email: "{{email}}",
+    page_size: 5
+});
+const tasks = [];
+for (const email of emails.messages || []) {
+    const task = await mcp_servers.todoist_create_task({
+        content: "Review: " + (email.subject || "Email"),
+        priority: 3
+    });
+    tasks.push(task);
+}
+return { emails_found: emails.messages?.length || 0, tasks_created: tasks.length };
+`,
+
+    // Calendar to Workflow: Get upcoming events and create n8n workflow
+    calendar_summary: `
+// Get today's calendar events
+const now = new Date();
+const endOfDay = new Date(now);
+endOfDay.setHours(23, 59, 59);
+const events = await mcp_servers.google_workspace_get_events({
+    user_google_email: "{{email}}",
+    calendar_id: "primary",
+    time_min: now.toISOString(),
+    time_max: endOfDay.toISOString()
+});
+return { 
+    date: now.toDateString(),
+    event_count: events.items?.length || 0,
+    events: (events.items || []).map(e => ({ summary: e.summary, start: e.start }))
+};
+`,
+
+    // Web Research: Search web and save to memory
+    web_research: `
+// Search the web and store findings in memory
+const results = await mcp_servers.tavily_tavily_search({
+    query: "{{query}}",
+    max_results: 5
+});
+const entities = (results.results || []).map((r, i) => ({
+    name: "research_" + i,
+    entityType: "WebResult",
+    observations: [r.title, r.url, r.content?.substring(0, 200)]
+}));
+if (entities.length > 0) {
+    await mcp_servers.memory_create_entities({ entities });
+}
+return { results_found: results.results?.length || 0, saved_to_memory: entities.length };
+`,
+
+    // Health Check: Test all MCP connections
+    health_check: `
+// Test all 10 MCP connections
+const results = {};
+const tests = [
+    { name: "google_workspace", fn: () => mcp_servers.google_workspace_list_calendars({ user_google_email: "{{email}}" }) },
+    { name: "n8n_mcp", fn: () => mcp_servers.n8n_mcp_n8n_health_check() },
+    { name: "todoist", fn: () => mcp_servers.todoist_get_projects_list() },
+    { name: "chrome_devtools", fn: () => mcp_servers.chrome_devtools_list_pages() },
+    { name: "desktop_commander", fn: () => mcp_servers.desktop_commander_get_config() },
+    { name: "git", fn: () => mcp_servers.git_git_status({ repo_path: "/Users/rharman" }) },
+    { name: "filesystem", fn: () => mcp_servers.filesystem_list_allowed_directories() },
+    { name: "memory", fn: () => mcp_servers.memory_read_graph() },
+    { name: "tavily", fn: () => mcp_servers.tavily_tavily_search({ query: "test", max_results: 1 }) },
+    { name: "ref", fn: () => mcp_servers.ref_ref_search_documentation({ query: "js", limit: 1 }) }
+];
+for (const test of tests) {
+    try {
+        await test.fn();
+        results[test.name] = "✅ OK";
+    } catch (e) {
+        results[test.name] = "❌ " + e.message;
+    }
+}
+const working = Object.values(results).filter(r => r.includes("OK")).length;
+return { summary: working + "/10 MCPs working", results };
+`
+};
+
+/**
+ * Get available workflow templates
+ */
+function getWorkflowTemplates(): { name: string; description: string }[] {
+    return [
+        { name: "email_to_task", description: "Search emails and create Todoist tasks from them" },
+        { name: "calendar_summary", description: "Get today's calendar events summary" },
+        { name: "web_research", description: "Search web with Tavily and save to memory" },
+        { name: "health_check", description: "Test all 10 MCP connections" }
+    ];
+}
+
+/**
+ * Execute a workflow template with variable substitution
+ */
+function getWorkflowCode(templateName: string, variables: Record<string, string> = {}): string | null {
+    const template = WORKFLOW_TEMPLATES[templateName as keyof typeof WORKFLOW_TEMPLATES];
+    if (!template) return null;
+    
+    let code = template;
+    for (const [key, value] of Object.entries(variables)) {
+        code = code.replace(new RegExp(`{{${key}}}`, 'g'), value);
+    }
+    return code;
 }
 
 main().catch(err => {
