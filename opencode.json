@@ -1,0 +1,1214 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "autoupdate": true,
+  "tui": {
+    "theme": "system"
+  },
+  "model": "synthetic/hf:MiniMaxAI/MiniMax-M2.1",
+  "plugin": [
+    "opencode-openai-codex-auth",
+    "opencode-gemini-auth",
+    "opencode-anthropic-auth",
+    "opencode-antigravity-auth@1.2.4",
+    "@tarquinen/opencode-dcp@1.1.1"
+  ],
+  "provider": {
+    "anthropic": {
+      "name": "Anthropic",
+      "options": {
+        "baseURL": "https://api.anthropic.com/v1"
+      },
+      "models": {
+        "claude-sonnet-4-5": {
+          "name": "Claude Sonnet 4.5",
+          "limit": {
+            "context": 200000,
+            "output": 16384
+          }
+        },
+        "claude-sonnet-4": {
+          "name": "Claude Sonnet 4",
+          "limit": {
+            "context": 200000,
+            "output": 16384
+          }
+        },
+        "claude-haiku-4-5": {
+          "name": "Claude Haiku 4.5",
+          "limit": {
+            "context": 200000,
+            "output": 8192
+          }
+        },
+        "claude-opus-4-5": {
+          "name": "Claude Opus 4.5",
+          "limit": {
+            "context": 200000,
+            "output": 32768
+          }
+        },
+        "claude-opus-4": {
+          "name": "Claude Opus 4",
+          "limit": {
+            "context": 200000,
+            "output": 32768
+          }
+        }
+      }
+    },
+    "google": {
+      "name": "Google (Antigravity)",
+      "models": {
+        "gemini-3-pro-high": {
+          "name": "Gemini 3 Pro High (Antigravity)",
+          "limit": {
+            "context": 1048576,
+            "output": 65535
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "gemini-3-pro-low": {
+          "name": "Gemini 3 Pro Low (Antigravity)",
+          "limit": {
+            "context": 1048576,
+            "output": 65535
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "gemini-3-flash": {
+          "name": "Gemini 3 Flash (Antigravity)",
+          "limit": {
+            "context": 1048576,
+            "output": 65536
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "claude-sonnet-4-5": {
+          "name": "Claude Sonnet 4.5 (Antigravity)",
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "claude-sonnet-4-5-thinking": {
+          "name": "Claude Sonnet 4.5 Thinking (Antigravity)",
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "claude-opus-4-5-thinking": {
+          "name": "Claude Opus 4.5 Thinking (Antigravity)",
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "gpt-oss-120b-medium": {
+          "name": "GPT-OSS 120B Medium (Antigravity)",
+          "limit": {
+            "context": 131072,
+            "output": 32768
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        }
+      }
+    },
+    "zai-coding-plan": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Z.AI Coding Plan",
+      "options": {
+        "baseURL": "https://api.z.ai/api/coding/paas/v4"
+      },
+      "models": {
+        "glm-4.6": {
+          "name": "GLM-4.6 (Coding Plan)",
+          "limit": {
+            "context": 200000,
+            "output": 16384
+          }
+        },
+        "glm-4.5": {
+          "name": "GLM-4.5 (Coding Plan)",
+          "limit": {
+            "context": 128000,
+            "output": 16384
+          }
+        },
+        "glm-4-long": {
+          "name": "GLM-4 Long (Coding Plan)",
+          "limit": {
+            "context": 1000000,
+            "output": 4096
+          }
+        }
+      }
+    },
+    "openai": {
+      "name": "OpenAI (OAuth)",
+      "options": {
+        "reasoningEffort": "medium",
+        "reasoningSummary": "auto",
+        "textVerbosity": "medium",
+        "include": [
+          "reasoning.encrypted_content"
+        ],
+        "store": false
+      },
+      "models": {
+        "gpt-5.1-codex-low": {
+          "name": "GPT 5.1 Codex Low (OAuth)",
+          "limit": {
+            "context": 272000,
+            "output": 128000
+          },
+          "options": {
+            "reasoningEffort": "low",
+            "reasoningSummary": "auto",
+            "textVerbosity": "medium",
+            "include": [
+              "reasoning.encrypted_content"
+            ],
+            "store": false
+          }
+        },
+        "gpt-5.1-codex-medium": {
+          "name": "GPT 5.1 Codex Medium (OAuth)",
+          "limit": {
+            "context": 272000,
+            "output": 128000
+          },
+          "options": {
+            "reasoningEffort": "medium",
+            "reasoningSummary": "auto",
+            "textVerbosity": "medium",
+            "include": [
+              "reasoning.encrypted_content"
+            ],
+            "store": false
+          }
+        },
+        "gpt-5.1-codex-high": {
+          "name": "GPT 5.1 Codex High (OAuth)",
+          "limit": {
+            "context": 272000,
+            "output": 128000
+          },
+          "options": {
+            "reasoningEffort": "high",
+            "reasoningSummary": "detailed",
+            "textVerbosity": "medium",
+            "include": [
+              "reasoning.encrypted_content"
+            ],
+            "store": false
+          }
+        },
+        "gpt-5.1-codex-mini-medium": {
+          "name": "GPT 5.1 Codex Mini Medium (OAuth)",
+          "limit": {
+            "context": 272000,
+            "output": 128000
+          },
+          "options": {
+            "reasoningEffort": "medium",
+            "reasoningSummary": "auto",
+            "textVerbosity": "medium",
+            "include": [
+              "reasoning.encrypted_content"
+            ],
+            "store": false
+          }
+        },
+        "gpt-5.1-codex-mini-high": {
+          "name": "GPT 5.1 Codex Mini High (OAuth)",
+          "limit": {
+            "context": 272000,
+            "output": 128000
+          },
+          "options": {
+            "reasoningEffort": "high",
+            "reasoningSummary": "detailed",
+            "textVerbosity": "medium",
+            "include": [
+              "reasoning.encrypted_content"
+            ],
+            "store": false
+          }
+        },
+        "gpt-5.1-low": {
+          "name": "GPT 5.1 Low (OAuth)",
+          "limit": {
+            "context": 272000,
+            "output": 128000
+          },
+          "options": {
+            "reasoningEffort": "low",
+            "reasoningSummary": "auto",
+            "textVerbosity": "low",
+            "include": [
+              "reasoning.encrypted_content"
+            ],
+            "store": false
+          }
+        },
+        "gpt-5.1-medium": {
+          "name": "GPT 5.1 Medium (OAuth)",
+          "limit": {
+            "context": 272000,
+            "output": 128000
+          },
+          "options": {
+            "reasoningEffort": "medium",
+            "reasoningSummary": "auto",
+            "textVerbosity": "medium",
+            "include": [
+              "reasoning.encrypted_content"
+            ],
+            "store": false
+          }
+        },
+        "gpt-5.1-high": {
+          "name": "GPT 5.1 High (OAuth)",
+          "limit": {
+            "context": 272000,
+            "output": 128000
+          },
+          "options": {
+            "reasoningEffort": "high",
+            "reasoningSummary": "detailed",
+            "textVerbosity": "high",
+            "include": [
+              "reasoning.encrypted_content"
+            ],
+            "store": false
+          }
+        }
+      }
+    },
+    "nous": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Nous Research",
+      "options": {
+        "baseURL": "https://inference-api.nousresearch.com/v1",
+        "apiKey": "sk-o4l3sr1pdvcet72qqjxlvb"
+      },
+      "models": {
+        "Hermes-4-405B": {
+          "name": "Hermes 4 405B",
+          "limit": {
+            "context": 128000,
+            "output": 16384
+          }
+        },
+        "Hermes-4-70B": {
+          "name": "Hermes 4 70B",
+          "limit": {
+            "context": 128000,
+            "output": 16384
+          }
+        },
+        "DeepHermes-3-Llama-3-8B-Preview": {
+          "name": "DeepHermes 3 8B",
+          "limit": {
+            "context": 64000,
+            "output": 8192
+          }
+        },
+        "DeepHermes-3-Mistral-24B-Preview": {
+          "name": "DeepHermes 3 24B",
+          "limit": {
+            "context": 32000,
+            "output": 8192
+          }
+        }
+      }
+    },
+    "nanogpt": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "NanoGPT (Pro Subscription)",
+      "options": {
+        "baseURL": "https://nano-gpt.com/api/v1",
+        "apiKey": "sk-nano-9b2b1c5a-6572-4373-999d-380cf888267d"
+      },
+      "models": {
+        "deepseek-ai/DeepSeek-R1-0528": {
+          "name": "DeepSeek R1 0528",
+          "limit": {
+            "context": 128000,
+            "output": 163840
+          }
+        },
+        "deepseek-r1": {
+          "name": "DeepSeek R1",
+          "limit": {
+            "context": 128000,
+            "output": 8192
+          }
+        },
+        "deepseek-chat": {
+          "name": "DeepSeek V3 Chat",
+          "limit": {
+            "context": 128000,
+            "output": 8192
+          }
+        },
+        "deepseek-ai/DeepSeek-V3.1": {
+          "name": "DeepSeek V3.1",
+          "limit": {
+            "context": 128000,
+            "output": 8192
+          }
+        },
+        "moonshotai/kimi-k2-thinking": {
+          "name": "Kimi K2 Thinking",
+          "limit": {
+            "context": 256000,
+            "output": 262144
+          }
+        },
+        "moonshotai/kimi-k2-instruct": {
+          "name": "Kimi K2 Instruct",
+          "limit": {
+            "context": 256000,
+            "output": 8192
+          }
+        },
+        "qwen/qwen3-coder": {
+          "name": "Qwen 3 Coder 480B",
+          "limit": {
+            "context": 262000,
+            "output": 65536
+          }
+        },
+        "Qwen/Qwen3-235B-A22B-Thinking-2507": {
+          "name": "Qwen 3 235B Thinking",
+          "limit": {
+            "context": 256000,
+            "output": 262144
+          }
+        },
+        "Qwen/Qwen3-235B-A22B-Instruct-2507": {
+          "name": "Qwen 3 235B Instruct",
+          "limit": {
+            "context": 256000,
+            "output": 262144
+          }
+        },
+        "qwq-32b": {
+          "name": "Qwen QwQ 32B",
+          "limit": {
+            "context": 128000,
+            "output": 32768
+          }
+        },
+        "qwen/qwen3-max": {
+          "name": "Qwen 3 Max",
+          "limit": {
+            "context": 128000,
+            "output": 16384
+          }
+        },
+        "meta-llama/llama-4-maverick": {
+          "name": "Llama 4 Maverick",
+          "limit": {
+            "context": 1048576,
+            "output": 65536
+          }
+        },
+        "meta-llama/llama-4-scout": {
+          "name": "Llama 4 Scout",
+          "limit": {
+            "context": 328000,
+            "output": 65536
+          }
+        },
+        "mistralai/mistral-large-3-675b-instruct-2512": {
+          "name": "Mistral Large 3 675B",
+          "limit": {
+            "context": 262144,
+            "output": 128000
+          }
+        },
+        "mistralai/devstral-2-123b-instruct-2512": {
+          "name": "Devstral 2 123B",
+          "limit": {
+            "context": 262144,
+            "output": 65536
+          }
+        },
+        "zai-org/glm-4.7": {
+          "name": "GLM 4.7",
+          "limit": {
+            "context": 200000,
+            "output": 128000
+          }
+        },
+        "zai-org/glm-4.7:thinking": {
+          "name": "GLM 4.7 Thinking",
+          "limit": {
+            "context": 200000,
+            "output": 128000
+          }
+        },
+        "zai-org/GLM-4.6-turbo": {
+          "name": "GLM 4.6 Turbo",
+          "limit": {
+            "context": 128000,
+            "output": 32768
+          }
+        },
+        "zai-org/GLM-4.6-turbo:thinking": {
+          "name": "GLM 4.6 Turbo Thinking",
+          "limit": {
+            "context": 128000,
+            "output": 32768
+          }
+        },
+        "glm-z1-air": {
+          "name": "GLM Z1 Air",
+          "limit": {
+            "context": 128000,
+            "output": 16384
+          }
+        },
+        "glm-z1-airx": {
+          "name": "GLM Z1 AirX",
+          "limit": {
+            "context": 128000,
+            "output": 16384
+          }
+        },
+        "NousResearch/Hermes-4-70B:thinking": {
+          "name": "Hermes 4 70B Thinking",
+          "limit": {
+            "context": 128000,
+            "output": 8192
+          }
+        },
+        "nousresearch/hermes-4-405b:thinking": {
+          "name": "Hermes 4 405B Thinking",
+          "limit": {
+            "context": 128000,
+            "output": 8192
+          }
+        },
+        "minimax/minimax-01": {
+          "name": "MiniMax 01",
+          "limit": {
+            "context": 1000000,
+            "output": 16384
+          }
+        },
+        "qwen3-vl-235b-a22b-thinking": {
+          "name": "Qwen 3 VL 235B Thinking",
+          "limit": {
+            "context": 128000,
+            "output": 32768
+          }
+        },
+        "openai/gpt-oss-120b": {
+          "name": "GPT OSS 120B",
+          "limit": {
+            "context": 128000,
+            "output": 16384
+          }
+        },
+        "auto-model": {
+          "name": "Auto Model",
+          "limit": {
+            "context": 1000000,
+            "output": 1000000
+          }
+        }
+      }
+    },
+    "synthetic": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Synthetic.new",
+      "options": {
+        "baseURL": "https://api.synthetic.new/openai/v1"
+      },
+      "models": {
+        "hf:zai-org/GLM-4.7": {
+          "name": "zai-org/GLM-4.7",
+          "limit": {
+            "context": 202752,
+            "output": 65536
+          },
+          "features": [
+            "tools",
+            "json_mode",
+            "structured_outputs",
+            "reasoning"
+          ]
+        },
+        "hf:MiniMaxAI/MiniMax-M2.1": {
+          "name": "MiniMaxAI/MiniMax-M2.1",
+          "limit": {
+            "context": 196608,
+            "output": 65536
+          },
+          "features": [
+            "tools",
+            "json_mode",
+            "structured_outputs",
+            "reasoning"
+          ]
+        },
+        "hf:moonshotai/Kimi-K2-Thinking": {
+          "name": "moonshotai/Kimi-K2-Thinking",
+          "limit": {
+            "context": 262144,
+            "output": 65536
+          },
+          "features": [
+            "tools",
+            "json_mode",
+            "structured_outputs",
+            "reasoning"
+          ]
+        },
+        "hf:meta-llama/Llama-3.3-70B-Instruct": {
+          "name": "meta-llama/Llama-3.3-70B-Instruct",
+          "limit": {
+            "context": 131072,
+            "output": 16384
+          }
+        },
+        "hf:deepseek-ai/DeepSeek-V3-0324": {
+          "name": "deepseek-ai/DeepSeek-V3-0324",
+          "limit": {
+            "context": 131072,
+            "output": 16384
+          }
+        },
+        "hf:deepseek-ai/DeepSeek-R1-0528": {
+          "name": "deepseek-ai/DeepSeek-R1-0528",
+          "limit": {
+            "context": 131072,
+            "output": 16384
+          }
+        },
+        "hf:deepseek-ai/DeepSeek-V3.1": {
+          "name": "deepseek-ai/DeepSeek-V3.1",
+          "limit": {
+            "context": 131072,
+            "output": 16384
+          }
+        },
+        "hf:deepseek-ai/DeepSeek-V3.1-Terminus": {
+          "name": "deepseek-ai/DeepSeek-V3.1-Terminus",
+          "limit": {
+            "context": 131072,
+            "output": 16384
+          }
+        },
+        "hf:deepseek-ai/DeepSeek-V3.2": {
+          "name": "deepseek-ai/DeepSeek-V3.2",
+          "limit": {
+            "context": 162816,
+            "output": 16384
+          }
+        },
+        "hf:meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8": {
+          "name": "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
+          "limit": {
+            "context": 536576,
+            "output": 16384
+          },
+          "features": [
+            "vision"
+          ]
+        },
+        "hf:Qwen/Qwen3-VL-235B-A22B-Instruct": {
+          "name": "Qwen/Qwen3-VL-235B-A22B-Instruct",
+          "limit": {
+            "context": 256000,
+            "output": 16384
+          },
+          "features": [
+            "vision"
+          ]
+        },
+        "hf:moonshotai/Kimi-K2-Instruct-0905": {
+          "name": "moonshotai/Kimi-K2-Instruct-0905",
+          "limit": {
+            "context": 262144,
+            "output": 16384
+          }
+        },
+        "hf:openai/gpt-oss-120b": {
+          "name": "openai/gpt-oss-120b",
+          "limit": {
+            "context": 131072,
+            "output": 16384
+          }
+        },
+        "hf:Qwen/Qwen3-Coder-480B-A35B-Instruct": {
+          "name": "Qwen/Qwen3-Coder-480B-A35B-Instruct",
+          "limit": {
+            "context": 262144,
+            "output": 16384
+          }
+        },
+        "hf:Qwen/Qwen3-235B-A22B-Instruct-2507": {
+          "name": "Qwen/Qwen3-235B-A22B-Instruct-2507",
+          "limit": {
+            "context": 262144,
+            "output": 16384
+          }
+        },
+        "hf:zai-org/GLM-4.5": {
+          "name": "zai-org/GLM-4.5",
+          "limit": {
+            "context": 131072,
+            "output": 16384
+          }
+        },
+        "hf:zai-org/GLM-4.6": {
+          "name": "zai-org/GLM-4.6",
+          "limit": {
+            "context": 202752,
+            "output": 16384
+          }
+        },
+        "hf:MiniMaxAI/MiniMax-M2": {
+          "name": "MiniMaxAI/MiniMax-M2",
+          "limit": {
+            "context": 196608,
+            "output": 16384
+          }
+        },
+        "hf:deepseek-ai/DeepSeek-V3": {
+          "name": "deepseek-ai/DeepSeek-V3",
+          "limit": {
+            "context": 131072,
+            "output": 16384
+          }
+        },
+        "hf:Qwen/Qwen3-235B-A22B-Thinking-2507": {
+          "name": "Qwen/Qwen3-235B-A22B-Thinking-2507",
+          "limit": {
+            "context": 262144,
+            "output": 16384
+          }
+        }
+      }
+    }
+  },
+  "mcp": {
+    "chrome-devtools": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "chrome-devtools-mcp",
+        "--browserUrl=http://localhost:9222"
+      ],
+      "enabled": false,
+      "timeout": 30000
+    },
+    "sequential-thinking": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "enabled": false,
+      "timeout": 60000
+    },
+    "brave": {
+      "type": "local",
+      "command": [
+        "node",
+        "brave-search-wrapper.mjs"
+      ],
+      "environment": {
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+      },
+      "enabled": true,
+      "timeout": 30000
+    },
+    "tavily": {
+      "type": "remote",
+      "url": "https://mcp.tavily.com/mcp/?tavilyApiKey=${TAVILY_API_KEY}",
+      "enabled": true
+    },
+    "desktop-commander": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@wonderwhy-er/desktop-commander@latest"
+      ],
+      "enabled": false
+    },
+    "ref": {
+      "type": "remote",
+      "url": "https://api.ref.tools/mcp?apiKey=${REF_API_KEY}",
+      "enabled": true
+    },
+    "mem0": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@mem0/mcp-server"
+      ],
+      "environment": {
+        "MEM0_API_KEY": "${MEM0_API_KEY}"
+      },
+      "enabled": false,
+      "timeout": 10000
+    },
+    "cois": {
+      "type": "remote",
+      "url": "http://72.62.160.169:8787/sse",
+      "enabled": true,
+      "timeout": 30000
+    },
+    "google-workspace": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "workspace-mcp",
+        "--single-user",
+        "--tools",
+        "gmail",
+        "calendar",
+        "sheets",
+        "--tool-tier",
+        "complete"
+      ],
+      "environment": {
+        "GOOGLE_OAUTH_CLIENT_ID": "${GOOGLE_OAUTH_CLIENT_ID}",
+        "GOOGLE_OAUTH_CLIENT_SECRET": "${GOOGLE_OAUTH_CLIENT_SECRET}",
+        "OAUTHLIB_INSECURE_TRANSPORT": "1",
+        "USER_GOOGLE_EMAIL": "${USER_GOOGLE_EMAIL}",
+        "WORKSPACE_MCP_PORT": "8000",
+        "GOOGLE_OAUTH_REDIRECT_URI": "http://localhost:8000/oauth2callback",
+        "GOOGLE_MCP_CREDENTIALS_DIR": "C:\\Users\\veloc\\.google_workspace_mcp\\personal"
+      },
+      "enabled": false,
+      "timeout": 60000
+    },
+    "work-google-workspace": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "workspace-mcp",
+        "--single-user",
+        "--tools",
+        "gmail",
+        "calendar",
+        "sheets",
+        "drive",
+        "--tool-tier",
+        "complete"
+      ],
+      "environment": {
+        "GOOGLE_OAUTH_CLIENT_ID": "${WORK_GOOGLE_OAUTH_CLIENT_ID}",
+        "GOOGLE_OAUTH_CLIENT_SECRET": "${WORK_GOOGLE_OAUTH_CLIENT_SECRET}",
+        "OAUTHLIB_INSECURE_TRANSPORT": "1",
+        "USER_GOOGLE_EMAIL": "${WORK_USER_GOOGLE_EMAIL}",
+        "WORKSPACE_MCP_PORT": "8001",
+        "GOOGLE_OAUTH_REDIRECT_URI": "http://localhost:8001/oauth2callback",
+        "GOOGLE_MCP_CREDENTIALS_DIR": "C:\\Users\\veloc\\.google_workspace_mcp\\work"
+      },
+      "enabled": false,
+      "timeout": 60000
+    },
+    "filesystem": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:\\"
+      ],
+      "enabled": false
+    },
+    "pal": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "--from",
+        "git+https://github.com/rharmanca/zen-mcp-server.git",
+        "pal-mcp-server"
+      ],
+      "enabled": false,
+      "timeout": 120000
+    },
+    "searxng": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "mcp-searxng"
+      ],
+      "environment": {
+        "SEARXNG_URL": "https://searxng-production-a341.up.railway.app"
+      },
+      "enabled": false,
+      "timeout": 30000
+    },
+"brightdata": {
+      "type": "remote",
+      "url": "https://mcp.brightdata.com/sse?token=${BRIGHTDATA_TOKEN}",
+      "enabled": true,
+      "timeout": 120000
+    },
+    "taskmaster": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "task-master-ai@latest",
+        "mcp"
+      ],
+      "environment": {
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+        "OPENAI_BASE_URL": "https://api.synthetic.new/openai/v1"
+      },
+      "enabled": false,
+      "timeout": 120000
+    },
+    "playwright": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@playwright/mcp@latest",
+        "--browser",
+        "msedge",
+        "--user-data-dir",
+        "C:\\Users\\veloc\\.playwright-mcp-profile"
+      ],
+      "enabled": false,
+      "timeout": 30000
+    },
+    "hyperbrowser": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "hyperbrowser-mcp"
+      ],
+      "environment": {
+        "HYPERBROWSER_API_KEY": "${HYPERBROWSER_API_KEY}"
+      },
+      "enabled": false,
+      "timeout": 120000
+    },
+    "n8n": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "n8n-mcp"
+      ],
+      "environment": {
+        "N8N_HOST": "https://n8n-production-53e9.up.railway.app",
+        "N8N_API_KEY": "${N8N_API_KEY}"
+      },
+      "enabled": false,
+      "timeout": 60000
+    },
+    "hostinger": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "hostinger-api-mcp@latest"
+      ],
+      "environment": {
+        "API_TOKEN": "${API_TOKEN}"
+      },
+      "enabled": false,
+      "timeout": 60000
+    },
+    "railway": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@railway/mcp-server"
+      ],
+      "enabled": false,
+      "timeout": 60000
+    },
+    "spotify": {
+      "type": "local",
+      "command": [
+        "node",
+        "C:\\Users\\veloc\\mcp-servers\\spotify-mcp\\build\\index.js"
+      ],
+      "environment": {
+        "SPOTIFY_CLIENT_ID": "${SPOTIFY_CLIENT_ID}",
+        "SPOTIFY_CLIENT_SECRET": "${SPOTIFY_CLIENT_SECRET}"
+      },
+      "enabled": false,
+      "timeout": 30000
+    },
+    "github": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "environment": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      },
+      "enabled": false,
+      "timeout": 30000
+    },
+    "context7": {
+      "type": "local",
+      "command": [
+        "cmd",
+        "/c",
+        "npx",
+        "-y",
+        "@upstash/context7-mcp"
+      ],
+      "enabled": true,
+      "timeout": 60000
+    },
+    "todoist": {
+      "type": "remote",
+      "url": "https://todoist-mcp-server-production-1bed.up.railway.app/sse",
+      "enabled": true,
+      "timeout": 30000
+    },
+    "duckduckgo": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "duckduckgo-mcp-server"
+      ],
+      "enabled": false,
+      "timeout": 30000
+    },
+    "fetch": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "mcp-server-fetch"
+      ],
+      "enabled": false,
+      "timeout": 30000
+    },
+    "sherlock": {
+      "type": "local",
+      "command": [
+        "python",
+        "C:\\Users\\veloc\\mcp-servers\\sherlock-mcp\\main.py"
+      ],
+      "enabled": false,
+      "timeout": 120000
+    },
+    "maigret": {
+      "type": "local",
+      "command": [
+        "python",
+        "C:\\Users\\veloc\\mcp-servers\\osint-tools\\maigret_mcp.py"
+      ],
+      "enabled": false,
+      "timeout": 120000
+    },
+    "phoneinfoga": {
+      "type": "local",
+      "command": [
+        "python",
+        "C:\\Users\\veloc\\mcp-servers\\osint-tools\\phoneinfoga_mcp.py"
+      ],
+      "enabled": false,
+      "timeout": 120000
+    },
+    "theharvester": {
+      "type": "local",
+      "command": [
+        "python",
+        "C:\\Users\\veloc\\mcp-servers\\osint-tools\\theharvester_mcp.py"
+      ],
+      "enabled": false,
+      "timeout": 120000
+    },
+    "memory": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
+      "enabled": false,
+      "timeout": 30000
+    },
+    "code-mode": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@utcp/code-mode-mcp"
+      ],
+      "enabled": true,
+      "timeout": 120000,
+      "environment": {
+        "UTCP_CONFIG_FILE": "C:\\Users\\veloc\\.utcp_config.json"
+      }
+    }
+  },
+  "tools": {
+    "google-workspace*": false,
+    "work-google-workspace*": false,
+    "todoist*": true
+  },
+  "command": {
+    "ralph": {
+      "template": "# Ralph Loop - Autonomous Continuous Iteration Mode\n\nEnter autonomous continuous iteration mode. You will work continuously, testing and refining until the task meets quality standards or the user explicitly cancels.\n\n## Your Mission\n\nWork autonomously without stopping until:\n- All tests pass\n- Linter reports zero errors\n- Build succeeds\n- Code follows style guidelines\n- Edge cases are handled\n- Documentation is updated\n- No TODOs or temporary hacks remain\n\n## Behavior\n\n**DO:**\n- Use the `ralph-loop` skill immediately\n- Keep working without asking permission\n- Self-verify everything\n- Report progress every 3-5 iterations\n- Find improvements autonomously\n- Continue until quality standards met\n\n**DON'T:**\n- Stop when \"tests pass\" if other quality issues remain\n- Wait for user permission between iterations\n- Rationalize \"good enough\"\n- Stop because work seems complete\n\n## Cancellation\n\nUser can stop you by saying:\n- \"Stop\"\n- \"Cancel ralph\"\n- \"That's enough\"\n- \"Pause\"\n\n## Integration\n\nThis command automatically loads the `ralph-loop` skill. You are now in autonomous mode until cancelled.",
+      "description": "Enter autonomous continuous iteration mode"
+    }
+  },
+  "agent": {
+    "build": {
+      "description": "Primary development agent with full tool access - MiniMax M2.1",
+      "mode": "primary",
+      "model": "synthetic/hf:MiniMaxAI/MiniMax-M2.1",
+      "temperature": 0.2,
+      "max_tokens": 4096
+    },
+    "plan": {
+      "description": "Analysis and planning - no file changes - Kimi K2 Thinking",
+      "mode": "primary",
+      "model": "synthetic/hf:moonshotai/Kimi-K2-Thinking",
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": false
+      },
+      "temperature": 1,
+      "min_p": 0.01,
+      "max_tokens": 8192
+    },
+    "assistant": {
+      "description": "General assistant for non-coding productivity tasks",
+      "mode": "primary"
+    },
+    "websearch": {
+      "description": "Unrestricted web search using Hermes 4 405B. No filters or refusals.",
+      "mode": "primary",
+      "temperature": 0.3,
+      "model": "nous/Hermes-4-405B",
+      "tools": {
+        "brave*": true,
+        "tavily*": true
+      }
+    },
+    "browser": {
+      "description": "Browser automation using Chrome DevTools MCP (existing Edge session).",
+      "mode": "subagent",
+      "tools": {
+        "chrome-devtools*": true
+      }
+    },
+    "github": {
+      "description": "GitHub operations - PRs, issues, repos.",
+      "mode": "subagent",
+      "tools": {
+        "github*": true
+      }
+    },
+    "gmail": {
+      "description": "Personal Gmail/Calendar/Sheets (mailrobharman@gmail.com).",
+      "mode": "subagent",
+      "tools": {
+        "google-workspace*": true
+      }
+    },
+    "work-email": {
+      "description": "Work Gmail/Calendar/Sheets/Drive (rharman@collegiateacademies.org).",
+      "mode": "subagent",
+      "tools": {
+        "work-google-workspace*": true
+      }
+    },
+    "docs": {
+      "description": "Documentation lookup using Context7 and Ref.",
+      "mode": "subagent",
+      "tools": {
+        "context7*": true,
+        "ref*": true
+      }
+    }
+  }
+}
