@@ -1,0 +1,53 @@
+{
+  "manual_call_templates": [
+    {
+      "name": "openlibrary",
+      "call_template_type": "mcp",
+      "config": {
+        "mcpServers": {
+          "openlibrary": {
+            "transport": "sse",
+            "url": "https://mcp.openlibrary.org/sse"
+          }
+        }
+      }
+    },
+    {
+      "name": "context7",
+      "call_template_type": "mcp",
+      "config": {
+        "mcpServers": {
+          "context7": {
+            "transport": "stdio",
+            "command": "cmd",
+            "args": ["/c", "npx", "-y", "@upstash/context7-mcp"]
+          }
+        }
+      }
+    },
+    {
+      "name": "brightdata",
+      "call_template_type": "mcp",
+      "config": {
+        "mcpServers": {
+          "brightdata": {
+            "transport": "sse",
+            "url": "https://mcp.brightdata.com/sse?token=${BRIGHTDATA_TOKEN}"
+          }
+        }
+      }
+    },
+    {
+      "name": "cois",
+      "call_template_type": "mcp",
+      "config": {
+        "mcpServers": {
+          "cois": {
+            "transport": "sse",
+            "url": "http://72.62.160.169:8787/sse"
+          }
+        }
+      }
+    }
+  ]
+}
